@@ -1,0 +1,70 @@
+#!/bin/sh
+
+magic="QDTAR1.0"
+
+
+usage() {
+    echo "Usage: $0 <mode> <input> <output>"
+    echo
+    echo "  -p, --pack          pack the input file"
+    echo "  -u, --unpack        unpack the input file"
+    echo
+    echo "Example: $0 --unpack rootfs.img rootfs.tar"
+    exit 1
+}
+
+
+pack() {
+    # Function arguments.
+    input="$1"; output="$2";
+
+    # Offset 0, length 970: header fill.
+    dd if="$input" of="$output" bs=970 count=1
+    status=$((status + $?))
+
+    # Offset 970, length 8: magic number.
+    printf "$magic" | dd of="$output" bs=970 seek=1
+    status=$((status + $?))
+
+    # Offset 978, until EOF: tar file.
+    dd if="$input" of="$output" bs=978 seek=1
+    status=$((status + $?))
+
+    return $status
+}
+
+
+unpack() {
+    # Function arguments.
+    input="$1"; output="$2"
+
+    # Warn the user if the magic number is wrong.
+    if [[ "$(dd if="$input" bs=1 skip=970 count=8)" != "$magic" ]]; then
+        echo "warning: the magic number is not '$magic'"
+    fi
+
+    # Extract the tar file.
+    dd if="$input" of="$output" bs=978 skip=1
+}
+
+
+# Check the number of arguments.
+[[ $# != 3 ]] && usage
+
+# If the output file exists, ask before overwriting.
+if test -f "$2"; then
+  read -p "Output file already exists. Overwrite? [y/N]: " answer
+  [[ "$answer" != "y" ]] && [[ "$answer" != "Y" ]] && exit 1
+fi
+
+# Operation mode selection.
+case "$1" in
+    -u|--unpack) log="$(unpack "$1" "$2" 2>&1)";;
+    -p|--pack) log="$(pack "$1" "$2" 2>&1)";;
+    *) usage;;
+esac
+
+# Log dump in case of error.
+if [[ $? > 0 ]]; then
+  echo "$log"
+fi
