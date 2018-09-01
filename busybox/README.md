@@ -12,7 +12,7 @@ While the former one was wisely renamed to `qdtar` and slightly modified to skip
 
 I didn't bother to make a full static reverse engineering of the binary, as considering it a black box was enough for documentation purposes.
 
-I'll request the source code of this binary, because BusyBox is licensed as GPLv2, and any derived work from it must follow the same license.
+I'll request the source code of this binary, because BusyBox is licensed as GPLv2, and any derived work from it must follow the same license. **UPDATE:** I didn't get the source code, as **bq** never answered my emails.
 
 ***
 
